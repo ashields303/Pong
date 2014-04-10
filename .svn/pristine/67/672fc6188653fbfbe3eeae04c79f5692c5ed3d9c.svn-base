@@ -1,0 +1,194 @@
+package menu;
+
+import game.Input;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+
+import components.AudioPlayer;
+
+public class MainMenu {
+
+	int gameWidth;
+	int gameHeight;
+	
+	Rectangle playButton;
+	Rectangle optionsButton;
+	Rectangle quitButton;
+	
+	private AudioPlayer menuUp;
+	private AudioPlayer menuDown;
+	
+	private int gameState = 0;
+	
+	public enum MENUSTATE{
+		PLAY,
+		OPTIONS,
+		QUIT
+	};
+	
+	
+	MENUSTATE ms;
+
+	public MainMenu(int width, int height){
+		ms = MENUSTATE.PLAY;
+
+		setGameHeight(height);
+		setGameWidth(width);
+		initButtons();
+	}
+	
+	private void initButtons(){
+	
+		menuUp = new AudioPlayer("/audio/menuUp.wav");
+		menuDown = new AudioPlayer("/audio/menuDown.wav");
+		playButton = new Rectangle(getGameWidth()/2,400,200,50);
+		optionsButton = new Rectangle(getGameWidth()/2,400,200,50);
+		quitButton = new Rectangle(getGameWidth()/2,400,200,50);
+		
+	}
+	
+	public void render(Graphics g) {
+		Font font0 = new Font("arial", Font.BOLD, 50);
+		Font font1 = new Font("arial", Font.BOLD, 30);
+		
+		
+		g.setFont(font0);
+		g.setColor(Color.WHITE);
+		g.drawString("PONG", (getGameWidth()/2)-70, 200);
+		
+		
+		g.setFont(font1);
+		drawButtonStates(g);
+		
+		
+	}
+	
+	public void update(Input input){
+		if(input.up.isPressed() && ms == MENUSTATE.PLAY){
+			//do nothing
+			input.up.toggle(false);
+			return;
+		}
+		if(input.up.isPressed() && ms == MENUSTATE.OPTIONS){
+			menuUp.play();
+			ms = MENUSTATE.PLAY;
+			input.up.toggle(false);
+
+			return;
+		}
+		if(input.up.isPressed() && ms == MENUSTATE.QUIT){
+			menuUp.play();
+			ms = MENUSTATE.OPTIONS;
+			input.up.toggle(false);
+			return;
+		}
+		
+		if(input.down.isPressed() && ms == MENUSTATE.PLAY){
+			menuDown.play();
+			ms = MENUSTATE.OPTIONS;
+			input.down.toggle(false);
+			return;
+
+		}
+		if(input.down.isPressed() && ms == MENUSTATE.OPTIONS){
+			menuDown.play();
+			ms = MENUSTATE.QUIT;
+			input.down.toggle(false);
+			return;
+		}
+		if(input.down.isPressed() && ms == MENUSTATE.QUIT){
+			//do nothing
+			input.down.toggle(false);
+			return;
+		}
+		
+		if(input.select.isPressed() && ms == MENUSTATE.PLAY){
+			//Start the game
+			setGameState(1);
+			input.select.toggle(false);
+		}
+		if(input.select.isPressed() && ms == MENUSTATE.OPTIONS){
+			//draw the options menu
+			
+			input.select.toggle(false);
+		}
+		if(input.select.isPressed() && ms == MENUSTATE.QUIT){
+			//Start the game
+			setGameState(2);
+			input.select.toggle(false);
+		}
+		
+	}
+	
+	private void drawButtonStates(Graphics g){
+		String playString = "PLAY";
+		String optionsString = "OPTIONS";
+		String quitString = "QUIT";
+		
+		if(ms == MENUSTATE.PLAY){
+			g.setColor(Color.RED);
+			g.drawRect((getGameWidth()/2)-playButton.width/2, 300, playButton.width, playButton.height);
+			g.drawString(playString,(getGameWidth()/2)-40, 300+35);
+
+			g.setColor(Color.WHITE);
+			g.drawRect((getGameWidth()/2)-optionsButton.width/2, 360, optionsButton.width, optionsButton.height);
+			g.drawString(optionsString,(getGameWidth()/2)-70, 360+35);
+			
+			g.drawRect((getGameWidth()/2)-quitButton.width/2, 420, quitButton.width, quitButton.height);
+			g.drawString(quitString,(getGameWidth()/2)-37, 420+35);
+		}
+		if(ms == MENUSTATE.OPTIONS){
+			g.setColor(Color.RED);
+			g.drawRect((getGameWidth()/2)-optionsButton.width/2, 360, optionsButton.width, optionsButton.height);
+			g.drawString(optionsString,(getGameWidth()/2)-70, 360+35);
+
+			g.setColor(Color.WHITE);
+			g.drawRect((getGameWidth()/2)-playButton.width/2, 300, playButton.width, playButton.height);
+			g.drawString(playString,(getGameWidth()/2)-40, 300+35);
+			
+			g.drawRect((getGameWidth()/2)-quitButton.width/2, 420, quitButton.width, quitButton.height);
+			g.drawString(quitString,(getGameWidth()/2)-37, 420+35);
+		}
+		if(ms == MENUSTATE.QUIT){
+			g.setColor(Color.RED);
+			g.drawRect((getGameWidth()/2)-quitButton.width/2, 420, quitButton.width, quitButton.height);
+			g.drawString(quitString,(getGameWidth()/2)-37, 420+35);
+
+			g.setColor(Color.WHITE);
+			g.drawRect((getGameWidth()/2)-playButton.width/2, 300, playButton.width, playButton.height);
+			g.drawString(playString,(getGameWidth()/2)-40, 300+35);
+
+			g.drawRect((getGameWidth()/2)-optionsButton.width/2, 360, optionsButton.width, optionsButton.height);
+			g.drawString(optionsString,(getGameWidth()/2)-70, 360+35);
+		}
+		
+	}
+	
+	public void setGameHeight(int height){
+		gameHeight = height;
+	}
+	
+	public int getGameHeight(){
+		return gameHeight;
+	}
+	
+	public void setGameWidth(int width){
+		gameWidth = width;	
+	}
+	
+	public int getGameWidth(){
+		return gameWidth;
+	}
+	
+	private void setGameState(int i){
+		gameState = i;
+	}
+
+	public int getGameState(){
+		return gameState;
+	}
+}

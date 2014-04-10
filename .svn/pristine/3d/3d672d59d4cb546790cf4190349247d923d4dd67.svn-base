@@ -1,0 +1,71 @@
+package menu;
+
+import game.Game;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+
+public class Menu {
+
+	int gameWidth;
+	int gameHeight;
+	
+	Rectangle playButton;
+	Rectangle optionsButton;
+	Rectangle quitButton;
+	
+	public Menu(int width, int height){
+		setGameHeight(height);
+		setGameWidth(width);
+		initButtons();
+	}
+	
+	private void initButtons(){
+		playButton = new Rectangle(getGameWidth()/2,400,200,50);
+		optionsButton = new Rectangle(getGameWidth()/2,400,200,50);
+		quitButton = new Rectangle(getGameWidth()/2,400,200,50);
+
+	}
+	
+	public void render(Graphics g) {
+		Font font0 = new Font("arial", Font.BOLD, 50);
+		Font font1 = new Font("arial", Font.BOLD, 30);
+		String playString = "PLAY";
+		String optionsString = "OPTIONS";
+		String quitString = "QUIT";
+		
+		g.setFont(font0);
+		g.setColor(Color.WHITE);
+		g.drawString("PONG", (getGameWidth()/2)-70, 200);
+		
+		
+		g.setFont(font1);
+		g.drawRect((getGameWidth()/2)-playButton.width/2, 300, playButton.width, playButton.height);
+		g.drawString(playString,(getGameWidth()/2)-40, 300+35);
+
+		g.drawRect((getGameWidth()/2)-optionsButton.width/2, 350, optionsButton.width, optionsButton.height);
+		g.drawString(optionsString,(getGameWidth()/2)-70, 350+35);
+		
+		g.drawRect((getGameWidth()/2)-quitButton.width/2, 400, quitButton.width, quitButton.height);
+		g.drawString(quitString,(getGameWidth()/2)-37, 400+35);
+	}
+	
+	public void setGameHeight(int height){
+		gameHeight = height;
+	}
+	
+	public int getGameHeight(){
+		return gameHeight;
+	}
+	
+	public void setGameWidth(int width){
+		gameWidth = width;	
+	}
+	
+	public int getGameWidth(){
+		return gameWidth;
+	}
+
+}

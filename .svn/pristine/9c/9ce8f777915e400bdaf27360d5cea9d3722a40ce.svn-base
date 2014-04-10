@@ -1,0 +1,196 @@
+package entities;
+
+import game.Input;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+
+import javax.swing.JFrame;
+
+import components.Vector2;
+
+
+public class Ball {
+	
+	private int hits;
+	
+	Vector2 position;
+	Vector2 direction;
+	double speed;
+	int size;
+	int ballCenter[];
+	static final double MIN_SPEED = 5.0;
+	static final double MAX_SPEED = 20.0;
+	static final double MIN_VERTICAL_SPEED = -10.0;
+	static final double MAX_VERTICAL_SPEED = 10.0;
+	
+	int[] screenSize = new int[2];
+	int[] screenCenter = new int[2];
+	Rectangle bounds;
+	
+	public Ball(int screenX, int screenY) {
+		setScreenSize(screenX, screenY);
+		init();
+	}//constructor for the ball
+	
+	public void init(){
+		setScreenCenter();
+		setHits(0);
+		position = new Vector2((double)screenCenter[0],(double)screenCenter[1]);//place in center of screen
+		faceOff();
+		//setSpeed(5); //speed is default 0;
+		direction = new Vector2(speed,speed*Math.random()); //direction is default <0,0>
+		setSize(15);
+		ballCenter = new int[2];
+		setCenter();
+		setBounds();
+		displayStats();
+	}//Initialize the ball properties
+
+	public void update(Input input){
+
+		move();
+		setBounds();
+	}//update the components of the ball
+	
+	public void render(Graphics g){
+		g.setColor(Color.WHITE);
+		g.fillRect((int)position.getI(), (int)position.getJ(), getSize(), getSize());
+		//g.setColor(Color.BLACK);
+		//g.drawOval((int)position.getI(), (int)position.getJ(), getSize(), getSize());
+	}//renders the ball objects
+	
+	public void move(){
+		position.add(direction);
+	}//moves the ball in a direction
+	
+	
+	public void accelarate(){
+		if(getHits()%3==0 && speed < MAX_SPEED){
+			speed++;
+			if(direction.getI() <= -MIN_SPEED){//if I is going to the left
+				direction.setComponents(-speed, direction.getJ());
+			}else if(direction.getI() >= MIN_SPEED ){//if I is going to the right
+				direction.setComponents(speed, direction.getJ());
+			}
+		}
+		
+		/*if(direction.getJ() > 10.0){
+			direction.setComponents(direction.getI(), 10.0);
+		}
+		if(direction.getJ() < -10.0){
+			direction.setComponents(direction.getI(), -10.0);
+		}*/
+		//setDirection(speed,speed);
+	}
+	
+	public void reset(){
+		setHits(0);
+		faceOff();
+		setPosition((double)screenCenter[0],(double)screenCenter[1]);
+		setDirection(speed,speed*Math.random());
+	}//resets the ball
+	
+	public void setDirection(double i, double j){
+		direction.setComponents(i, j);; //direction is default <0,0>
+	}//sets the direction vector of the ball
+	
+	private void setPosition(double i, double j){
+		position.setComponents(i, j);;
+	}//sets the position vector of the ball
+	
+	public Vector2 getDirection(){
+		return direction;
+	}// get the direction vector of the ball
+	
+	public Vector2 getPosition(){
+		return position;
+	}// get the position vector of the ball
+	
+	private void setSpeed(double s){
+		speed = s;
+	}
+	
+	public double getSpeed(){
+		return speed;
+	}
+	
+	private void setSize(int s){
+		size = s;
+	}
+	
+	public int getSize(){
+		return size;
+	}
+	
+	private void faceOff(){
+		int random = (int)Math.abs(100*Math.random());
+		if(random%2 == 0){//Even number fire Right
+			setSpeed(5);
+		}else{//fire Left
+			setSpeed(-5);
+		}
+	}
+	
+	private void setCenter(){
+		ballCenter[0] = ((int)position.getI()+(size/2));
+		ballCenter[1] = ((int)position.getJ()+(size/2));
+	}
+	
+	private void setScreenCenter(){
+		screenCenter[0] = screenSize[0]/2;
+		screenCenter[1] = screenSize[1]/2;
+	}
+	
+	public void setScreenSize(int screenX, int screenY){
+		screenSize[0] = screenX;
+		screenSize[1] = screenY;
+	}
+	
+	private void setBounds(){
+		bounds = new Rectangle((int)position.getI(),(int)position.getJ(),size,size);
+	}
+	
+	public Rectangle getBounds(){
+		return bounds;
+	}
+	
+	public void drawBounds(Graphics g){
+		g.setColor(Color.GREEN);
+		g.drawRect(bounds.x,bounds.y,bounds.width,bounds.height);
+	}
+
+	public void setHits(int hits) {
+		this.hits = hits;
+	}
+	
+	public int getHits(){
+		return hits;
+	}
+	
+	public void start(){
+		setSpeed(5);
+		direction.scale(speed);
+	}
+	
+	public void displayStats(){
+		System.out.print("POSITION: ");
+		position.display();
+		
+		System.out.print("DIRECTION: ");
+		direction.display();
+		
+		System.out.println("SPEED: " + getSpeed());
+		System.out.println("SIZE: " + getSize());
+		System.out.println("BALL CENTER: [" + ballCenter[0] + "," + ballCenter[1] + "]");
+		System.out.println("SCREEN SIZE: [" + screenSize[0] + "," + screenSize[1] + "]");
+		System.out.println("SCREEN CENTER: [" + screenCenter[0] + "," + screenCenter[1] + "]");
+		double random = speed*Math.random();
+		System.out.println("random: " + random);
+		
+	}
+
+	
+	
+}

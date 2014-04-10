@@ -1,0 +1,196 @@
+package entities;
+
+import game.Input;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+
+import javax.swing.Timer;
+
+import components.Vector2;
+
+public class Paddle {
+
+	Vector2 position;
+	Vector2 direction;
+	double speed;
+	int paddleHeight;
+	int paddleWidth;
+	int player = 0;
+	private static final double MAX_SPEED = 8.0;
+	
+	Rectangle bounds;
+	boolean isMoving = false;
+	
+	int[] screenSize = new int[2];
+	public Paddle(int screenX, int screenY, int playerNumber){
+		setScreenSize(screenX, screenY);
+		init(playerNumber);
+	}
+	
+	public void init(int player){
+		direction = new Vector2(0,0);
+		position = new Vector2(0,0);
+		setHeight(140);
+		setWidth(20);
+		setPlayerNumber(player);
+		setSpeed(0);
+		displayStats();
+		setBounds();
+	}//initialize the paddle
+	
+	public void update(Input input){
+		move(input);
+		updateBounds();
+	}
+	
+	public void render(Graphics g){
+		g.setColor(Color.WHITE);
+		g.fillRect((int)position.getI(), (int)position.getJ(), getWidth(), getHeight());
+	}
+	
+	private void setScreenSize(int screenX, int screenY){
+		screenSize[0] = screenX;
+		screenSize[1] = screenY;
+	}
+
+	public int[] getScreenSize(){
+		return screenSize;
+	}
+	
+	private void setPlayerNumber(int playerNumber){
+		player = playerNumber;
+		if(player == 1){ // Player 1, set to the left side of the screen
+			setPosition(60,(screenSize[1]/2));
+		}if(player == 2){ // Player 2, set to the right side of the screen.
+			setPosition((screenSize[0]-60),(screenSize[1]/2));
+		}if(player == 0){// Computer player, set to the right side of the screen.
+			setPosition((screenSize[0]-60),(screenSize[1]/2));
+		}
+		
+	}
+	
+	public int getPlayerNumber(){
+		return player;
+	}
+	
+	public void setDirection(double i, double j){
+		direction.setComponents(i, j);; //direction is default <0,0>
+	}//sets the direction vector of the ball
+	
+	public Vector2 getDirection(){
+		return direction;
+	}// get the direction vector of the ball
+
+	public void setPosition(double i, double j){
+		position.setComponents(i, j);;
+	}//sets the position vector of the ball
+	
+	public Vector2 getPosition(){
+		return position;
+	}// get the position vector of the ball
+	
+	public void setSpeed(double s){
+		speed = s;
+	}
+	
+	public double getSpeed(){
+		return speed;
+	}
+	
+	private void setHeight(int h){
+		paddleHeight = h;
+	}
+	
+	public int getHeight(){
+		return paddleHeight;
+	}
+
+	private void setWidth(int w){
+		paddleWidth = w;
+	}
+	
+	public int getWidth(){
+		return paddleWidth;
+	}
+	
+	private void setBounds(){
+		if(player == 1){
+			bounds = new Rectangle((int)position.getI()+getWidth(),(int)position.getJ(),getWidth(),getHeight());
+		}else{
+			bounds = new Rectangle((int)position.getI(),(int)position.getJ(),2,getHeight());
+		}
+
+	}
+	
+	public double getMaxSpeed(){
+		return MAX_SPEED;
+	}
+	
+	public void updateBounds(){
+		bounds.y = (int)getPosition().getJ();
+	}
+	
+	public Rectangle getBounds(){
+		return bounds;
+	}
+	
+	public void drawBounds(Graphics g){
+		g.setColor(Color.red);
+		g.drawRect(bounds.x,bounds.y,bounds.width,bounds.height);
+	}
+	
+	
+	public void move(Input input){
+		
+		if(input.up.isPressed()){
+			increaseSpeed();
+			setDirection(0,-(speed));
+			position.add(direction);
+		}
+		
+		if(input.down.isPressed()){
+			increaseSpeed();
+			setDirection(0,(speed));
+			position.add(direction);
+		}
+		
+		if(!input.up.isPressed() && !input.down.isPressed()){
+				if(direction.getJ()>0){//moving down
+					decreaseSpeed();
+					setDirection(0,(speed));
+					position.add(direction);
+				}
+				if(direction.getJ()<0){//moving down
+					decreaseSpeed();
+					setDirection(0,-(speed));
+					position.add(direction);
+				}
+		}
+	}
+	
+	public void increaseSpeed(){
+		speed+=.5;
+		if(speed>MAX_SPEED){
+			speed = MAX_SPEED;
+		}
+	}
+	
+	public void decreaseSpeed(){
+		speed-=.5;
+		if(speed<0.0){
+			speed = 0.0;
+		}
+	}
+	
+	private void displayStats(){
+		System.out.print("POSITION: ");
+		position.display();
+		
+		System.out.print("DIRECTION: ");
+		direction.display();
+		
+		System.out.print("Player Number: " + player);
+	}
+}

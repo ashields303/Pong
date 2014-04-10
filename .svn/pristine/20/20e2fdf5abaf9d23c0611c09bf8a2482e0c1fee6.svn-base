@@ -1,0 +1,314 @@
+package game;
+
+import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.image.BufferStrategy;
+
+import javax.swing.JFrame;
+
+import entities.Ball;
+import entities.Paddle;
+
+public class Game extends Canvas implements Runnable {
+
+	private static final long serialVersionUID = 1L;
+	private static int WIDTH = 480;
+	private static int HEIGHT = 270;
+	private static final String GNAME = "New Game";
+	private int screenScaler = 2;
+	public boolean intersects = false;
+
+	private JFrame panel;
+	private Thread gameThread;
+
+	Dimension perferredSize = new Dimension(WIDTH * screenScaler, HEIGHT
+			* screenScaler);
+	Dimension minimimSize = new Dimension(WIDTH, HEIGHT);
+	Dimension maximumSize = new Dimension(WIDTH * screenScaler, HEIGHT
+			* screenScaler);
+
+	private volatile boolean running = false;
+
+	double delta = 0D;
+	final double optimalTime = (1000000000 / 60);
+	int frames = 0;
+	int updates = 0;
+
+	boolean canRetrieveFPS = false;
+	boolean canRetrieveUPS = false;
+
+	public volatile Input input;
+
+	public Ball ball;
+	public Paddle paddle1;
+	public Paddle paddle2;
+	public Background bg;
+
+	public Game() {
+		// Set up the game screen sizes
+		setPreferredSize(perferredSize);
+		setMinimumSize(minimimSize);
+		setMaximumSize(maximumSize);
+
+		panel = new JFrame(GNAME);
+
+		panel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		panel.setLayout(new BorderLayout());
+		panel.add(this, BorderLayout.CENTER);
+
+		panel.pack();
+
+		panel.setResizable(false);
+		panel.setLocationRelativeTo(null);
+
+		panel.setFocusable(true);
+		panel.requestFocus();
+
+		panel.setVisible(true);
+	}// end default constructor Game
+
+	public synchronized void start() {
+
+		timerStart();
+		if (gameThread == null || !isRunning()) {
+			gameThread = new Thread(this);
+			gameThread.start();
+		}
+	}// end start();
+
+	public synchronized void stop() {
+		timerStop();
+	}// end stop();
+
+	public void init() {
+		input = new Input(this);
+		ball = new Ball(panel.getWidth(), panel.getHeight());
+		paddle1 = new Paddle(panel.getWidth(), panel.getHeight(), 1);
+		paddle2 = new Paddle(panel.getWidth(), panel.getHeight(), 0);
+		bg = new Background(panel.getWidth(), panel.getHeight());
+		// initialize all the game components here
+	}//
+
+	public void update() {
+		checkCollisions();
+		ball.update(input);
+		paddle1.update(input);
+		if (paddle2.getPlayerNumber() == 0) {
+			CPUMove(paddle2);
+		} else {
+			paddle2.update(input);
+		}
+	}// end update();
+
+	public void gameRender() {
+
+		BufferStrategy BS = getBufferStrategy();
+		if (BS == null) {
+			createBufferStrategy(2);
+			return;
+		}
+
+		Graphics G = BS.getDrawGraphics();
+		G.setColor(Color.BLACK);
+		G.fillRect(0, 0, panel.getWidth(), panel.getHeight());
+		bg.render(G);
+		ball.render(G);
+		ball.drawBounds(G);
+		paddle1.render(G);
+		paddle1.drawBounds(G);
+		paddle2.render(G);
+		paddle2.drawBounds(G);
+		drawHud(G);
+		// Toolkit.getDefaultToolkit().sync();
+		G.dispose();
+		BS.show();
+
+	}// end render();
+
+	public void run() {
+		init();
+		long lastTime = System.nanoTime();
+		long lTimer = System.currentTimeMillis();
+
+		while (running) {
+			long nowTime = System.nanoTime();
+
+			delta += (nowTime - lastTime) / optimalTime;
+			lastTime = nowTime;
+
+			while (delta >= 1) {
+				updates++;
+				// UPDATE CALLS GO HERE
+				update();
+				delta -= 1;
+			}
+
+			// Try to sleep the thread for 2 milliseconds
+			try {
+				Thread.sleep(2);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			// update the frame count
+			frames++;
+			gameRender();
+			// RENDER CALLS GO HERE
+
+			// This is used for updating the frames and updates per second
+			// and for updating the calls to getFPS and UPS.
+			if (System.currentTimeMillis() - lTimer >= 1000) {
+				lTimer += 1000;
+				frames = 0;
+				updates = 0;
+			}
+		}
+	}// end run
+
+	public void setFPS(int numFrames) {
+		frames = numFrames;
+	}
+
+	public int getUPS() {
+		int UPS = 0;
+		if (canRetrieveFPS) {
+			UPS = updates;
+		}
+		return UPS;
+	}
+
+	public void timerStart() {
+		setRunning(true);
+	}
+
+	public void timerStop() {
+		setRunning(false);
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	private void setRunning(boolean b) {
+		running = b;
+	}
+
+	public void drawHud(Graphics g) {
+		g.setColor(Color.RED);
+		String ballPosition = ("<" + ball.getPosition().getI() + ">,<"
+				+ ball.getPosition().getJ() + ">");
+		String ballDirection = ("<" + ball.getDirection().getI() + ">,<"
+				+ ball.getDirection().getJ() + ">");
+		String paddlePosition = ("<" + paddle1.getPosition().getI() + ">,<"
+				+ paddle2.getPosition().getJ() + ">");
+		String paddleDirection = ("<" + paddle1.getDirection().getI() + ">,<"
+				+ paddle2.getDirection().getJ() + ">");
+		g.drawString("Ball Position: " + ballPosition, 10, 10);
+		g.drawString("Ball Direction: " + ballDirection, 10, 30);
+		g.drawString("GAME FPS: " + frames, 10, 90);
+		g.drawString("GAME UPS: " + updates, 10, 110);
+		g.drawString("PLAYER Position: " + paddlePosition, 400, 10);
+		g.drawString("PLAYER Direction: " + paddleDirection, 400, 30);
+		g.drawString("PLAYER Speed: " + paddle1.getSpeed(), 400, 50);
+		g.drawString("Ball Speed: " + ball.getSpeed(), 10, 50);
+		g.drawString("Ball Hits: " + ball.getHits(), 10, 70);
+		g.drawString(
+				"Distance: "
+						+ ((ball.getPosition().getJ() - ((paddle2.getHeight() / 2) - ball
+								.getSize() / 2)) - paddle2.getPosition().getJ()),
+				10, 130);
+	}
+
+	public void checkCollisions() {
+		if ((ball.getPosition().getI()) >= panel.getWidth() - ball.getSize()) {// hitting
+																				// the
+																				// right
+																				// wall
+			// System.out.println("Colliding with: " + "rightWall");
+			ball.reset();
+			// ball.setDirection(-(ball.getDirection().getI()),ball.getDirection().getJ());
+		}
+		if ((ball.getPosition().getI()) <= 0) {// hitting the left wall
+			// System.out.println("Colliding with: " + "leftWall");
+			ball.reset();
+			// ball.setDirection(-(ball.getDirection().getI()),ball.getDirection().getJ());
+		}
+		if ((ball.getPosition().getJ()) <= 0) {
+			// System.out.println("Colliding with: " + "topWall");
+			ball.setDirection((ball.getDirection().getI()),
+					-(ball.getDirection().getJ()));
+		}
+		if ((ball.getPosition().getJ() + (50)) >= panel.getHeight()) {
+			// System.out.println("Colliding with: " + "bottomWall");
+			ball.setDirection((ball.getDirection().getI()),
+					-(ball.getDirection().getJ()));
+		}// end collisions for wall
+
+		if (checkIntersection(ball.getBounds(), paddle1.getBounds())) {
+			ball.setHits(ball.getHits() + 1);
+			ball.flipSpeed();
+			ball.getDirection().add(paddle1.getDirection());
+			ball.flipDirection();
+		}
+		if (checkIntersection(ball.getBounds(), paddle2.getBounds())) {
+			ball.setHits(ball.getHits() + 1);
+			ball.flipSpeed();
+			ball.getDirection().add(paddle2.getDirection());
+			ball.flipDirection();
+		}
+	}
+
+	private void CPUMove(Paddle cpu) {
+		int yOffset = ((cpu.getHeight() / 2) - ball.getSize() / 2);
+		double distance;
+		distance = ((ball.getPosition().getJ() - yOffset) - cpu.getPosition()
+				.getJ());
+		
+		if (ball.getPosition().getI() > panel.getWidth() / 2) {
+				
+			if (distance < 0 && distance > -cpu.getMaxSpeed()) {
+				cpu.setSpeed(distance);
+			}
+			
+			if (distance < -cpu.getMaxSpeed()) {
+				cpu.setSpeed(-cpu.getMaxSpeed());
+			}
+
+			
+			if (distance > 0 && distance < cpu.getMaxSpeed()) {
+				cpu.setSpeed(distance);
+			}
+			
+			if (distance > 8.0) {
+				cpu.setSpeed(cpu.getMaxSpeed());
+			}
+		} else {
+			cpu.decreaseSpeed();
+		}
+
+		cpu.setDirection(0, cpu.getSpeed());
+		cpu.getPosition().add(cpu.getDirection());
+		cpu.updateBounds();
+		//cpu.checkCollisions();
+	}
+
+	public boolean checkIntersection(Rectangle ball, Rectangle paddle) {
+		if (ball.intersects(paddle) || paddle.intersects(ball)) {
+			intersects = true;
+		} else {
+			intersects = false;
+		}
+		return intersects;
+	}
+
+	public static void main(String[] args) {
+		new Game().start();
+	}
+
+}

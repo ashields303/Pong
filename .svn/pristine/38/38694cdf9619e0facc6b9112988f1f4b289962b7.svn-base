@@ -1,0 +1,74 @@
+package menu;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+
+import javax.swing.AbstractButton;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class Menu extends JFrame implements ActionListener{
+
+	protected JButton options,play,onePlayer,twoPlayer;
+	
+	public Menu(){
+		super();
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    setSize(900, 900);
+		initButtons();
+		createAndShowMainMenu();
+		setVisible(true);
+		
+		
+	}
+	
+	public void initButtons(){
+		options = new JButton("options");
+		options.setVerticalTextPosition(AbstractButton.CENTER);
+		options.setHorizontalTextPosition(AbstractButton.LEADING);
+		options.setMnemonic(KeyEvent.VK_O);
+		options.setActionCommand("options");
+		options.setSize(100, 60);
+		
+		play = new JButton("play");
+		play.setVerticalTextPosition(AbstractButton.CENTER);
+		play.setHorizontalTextPosition(AbstractButton.LEADING);
+		play.setMnemonic(KeyEvent.VK_P);
+		play.setActionCommand("play");
+		play.setSize(100, 60);
+		play.setBorderPainted(true);  
+		play.setFocusPainted(false);  
+		play.setContentAreaFilled(false);  
+		
+		options.addActionListener(this);
+		play.addActionListener(this);
+		
+		add(play,BorderLayout.SOUTH);
+		add(options,BorderLayout.NORTH);
+	}
+	
+	private static void createAndShowMainMenu(){
+		//JPanel panel = new JPanel();
+		//panel.setLayout(new BorderLayout());
+	
+	}
+	
+	public void actionPerformed(ActionEvent arg0) {
+		
+	}
+	
+	 public static void main(String[] args) {
+	        //Schedule a job for the event-dispatching thread:
+	        //creating and showing this application's GUI.
+	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+	            public void run() {
+	                new Menu();
+	            }
+	        });
+	    }
+
+}
